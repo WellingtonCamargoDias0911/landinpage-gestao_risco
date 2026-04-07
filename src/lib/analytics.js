@@ -3,6 +3,44 @@ import React from "react";
 import ReactGA from 'react-ga4';
 import { onCLS, onFID, onLCP, onFCP, onTTFB } from 'web-vitals';
 
+const TRACKING_STORAGE_KEY = 'tracking';
+const TRACKING_FIELDS = [
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_content',
+  'utm_term',
+  'gclid',
+  'fbclid'
+];
+
+export const captureTrackingParams = () => {
+  if (typeof window === 'undefined') return {};
+
+  const params = new URLSearchParams(window.location.search);
+  const storedTracking = getStoredUtms();
+  const nextTracking = { ...storedTracking };
+  let hasNewTrackingData = false;
+
+  TRACKING_FIELDS.forEach((field) => {
+    const value = params.get(field);
+
+    if (value) {
+      nextTracking[field] = value;
+      sessionStorage.setItem(field, value);
+      hasNewTrackingData = true;
+    }
+  });
+
+  sessionStorage.setItem(TRACKING_STORAGE_KEY, JSON.stringify(nextTracking));
+
+  if (hasNewTrackingData) {
+    console.log('[Analytics] Captured tracking parameters:', nextTracking);
+  }
+
+  return nextTracking;
+};
+
 // Initialize GTM and GA4
 export const initAnalytics = (trackingId) => {
   // Initialize GTM
@@ -26,34 +64,28 @@ export const initAnalytics = (trackingId) => {
     trackWebVitals();
   }
 
-  // Capture UTM parameters globally on load
-  if (typeof window !== 'undefined') {
-    const params = new URLSearchParams(window.location.search);
-    const utms = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
-    let hasUtms = false;
-    
-    utms.forEach(utm => {
-      const val = params.get(utm);
-      if (val) {
-        sessionStorage.setItem(utm, val);
-        hasUtms = true;
-      }
-    });
-
-    if (hasUtms) {
-      console.log('[Analytics] Captured UTM parameters:', getStoredUtms());
-    }
-  }
+  captureTrackingParams();
 };
 
 export const getStoredUtms = () => {
   if (typeof window === 'undefined') return {};
+
+  let storedTracking = {};
+
+  try {
+    storedTracking = JSON.parse(sessionStorage.getItem(TRACKING_STORAGE_KEY) || '{}');
+  } catch (error) {
+    console.warn('[Analytics] Failed to parse stored tracking data:', error);
+  }
+
   return {
-    utm_source: sessionStorage.getItem('utm_source') || '',
-    utm_medium: sessionStorage.getItem('utm_medium') || '',
-    utm_campaign: sessionStorage.getItem('utm_campaign') || '',
-    utm_term: sessionStorage.getItem('utm_term') || '',
-    utm_content: sessionStorage.getItem('utm_content') || ''
+    utm_source: storedTracking.utm_source || sessionStorage.getItem('utm_source') || '',
+    utm_medium: storedTracking.utm_medium || sessionStorage.getItem('utm_medium') || '',
+    utm_campaign: storedTracking.utm_campaign || sessionStorage.getItem('utm_campaign') || '',
+    utm_term: storedTracking.utm_term || sessionStorage.getItem('utm_term') || '',
+    utm_content: storedTracking.utm_content || sessionStorage.getItem('utm_content') || '',
+    gclid: storedTracking.gclid || sessionStorage.getItem('gclid') || '',
+    fbclid: storedTracking.fbclid || sessionStorage.getItem('fbclid') || ''
   };
 };
 

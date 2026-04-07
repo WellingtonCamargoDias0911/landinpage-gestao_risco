@@ -2,7 +2,7 @@ import React, { Suspense, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { initAnalytics, trackPageView } from '@/lib/analytics';
+import { captureTrackingParams, initAnalytics, trackPageView } from '@/lib/analytics';
 import LoadingFallback from '@/components/LoadingFallback';
 import '@/index.css';
 
@@ -20,6 +20,7 @@ const NotFound = React.lazy(() => import('@/pages/NotFound'));
 const AnalyticsTracker = () => {
   const location = useLocation();
   useEffect(() => {
+    captureTrackingParams();
     trackPageView(location.pathname + location.search);
   }, [location]);
   return null;

@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getStoredUtms } from '@/lib/analytics';
 
+const WEBHOOK_URL = 'https://n8n.srv1188401.hstgr.cloud/webhook/formulario-consorcio';
+const FORM_NAME = 'gestao-risco';
+
 export const useWebhookSubmit = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -15,16 +18,17 @@ export const useWebhookSubmit = () => {
     const payload = {
       ...formData,
       servico: serviceName,
+      form_name: FORM_NAME,
+      'form-name': FORM_NAME,
       pagina: location.pathname,
       timestamp: new Date().toISOString(),
-      ...getStoredUtms() // Inject stored UTMs
+      ...getStoredUtms()
     };
 
     console.log(`[Webhook] Preparing to send payload for ${serviceName}:`, payload);
 
     try {
-      // Updated Webhook URL as per Task 1
-      const response = await fetch('https://hook.us2.make.com/uueoh0uenix8tbvstomh9kvnnb2rwv3v', {
+      const response = await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
