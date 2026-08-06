@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getStoredUtms } from '@/lib/analytics';
 
-const WEBHOOK_URL = 'https://n8n.srv1188401.hstgr.cloud/webhook/formulario-consorcio';
+const WEBHOOK_URL = 'https://grafo-painel.pages.dev/api/lead-intake?token=grf_live_TDe25P69evVzRMmPckjKPAHdppP8IKug';
 const FORM_NAME = 'gestao-risco';
 
 export const useWebhookSubmit = () => {
@@ -15,7 +15,12 @@ export const useWebhookSubmit = () => {
     setIsLoading(true);
     setError(null);
 
+    const phone = formData?.telefone || formData?.whatsapp || '';
+
     const payload = {
+      nome: formData?.nome || '',
+      telefone: phone,
+      produto: 'gestao_risco',
       ...formData,
       servico: serviceName,
       form_name: FORM_NAME,
